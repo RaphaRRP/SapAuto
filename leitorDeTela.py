@@ -4,7 +4,7 @@ import pyautogui
 import time
 
 # Caminho para o executável do Tesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:/Users/prr8ca/AppData/Local/Programs/Tesseract-OCR/tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'S:/PM/ter/tef/tef3/Inter_Setor/TEF3 Controles/Bloco K Planejamento/Automações/Tesseract-OCR/tesseract.exe'
 
 def verificar_palavras_na_tela(palavras):
     # Captura uma captura de tela
@@ -26,8 +26,10 @@ def esperar_tela(palavras):
             print(f"A palavra '{palavra}' foi encontrada na tela!")
             break  
         else:
-            print(f"Nenhuma palavra da lista foi encontrada. Verificando novamente em 2 segundos...")
+            print(f"Nenhuma palavra da lista foi encontrada. Verificando novamente em 1 segundo...")
         
-        # Aguarda 2 segundos antes de verificar novamente
-        time.sleep(2)
+        # Aguarda 1 segundos antes de verificar novamente
+        time.sleep(1)
+
+
 

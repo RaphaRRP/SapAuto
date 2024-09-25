@@ -8,7 +8,7 @@ import leitorDeTela, exportar, janelasSap, transacoes
 pyautogui.PAUSE = 0.5
 
 
-def rodar_mb25():
+def rodar_mb25(usuario):
     hwnd = win32gui.FindWindow(None, "PS0(4)/011 SAP Easy Access")
     time.sleep(0.5)
     win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
@@ -21,6 +21,7 @@ def rodar_mb25():
     janelasSap.esperar_janela_abrir("PS0(4)/011 Lista de reservas administração de estoques")
     transacoes.puxar_variante("mb25")
     leitorDeTela.esperar_tela(["Denom."])
-    exportar.exportar_plainha("mb25")
+    exportar.exportar_plainha("mb25", usuario)
     time.sleep(1)
-    tabela.alterar_tabela_mb25()
+    tabela.levar_mb25_para_blocok()
+

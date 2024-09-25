@@ -101,6 +101,20 @@ def abrir_todas_janelas():
     time.sleep(3)
 
 
+def janela_aberta_com_excel():
+    def enum_janelas(hwnd, lista_janelas):
+        if win32gui.IsWindowVisible(hwnd):
+            window_title = win32gui.GetWindowText(hwnd)
+            lista_janelas.append(window_title)
+
+    janelas = []
+    win32gui.EnumWindows(enum_janelas, janelas)
+    
+    for janela in janelas:
+        if "Excel" in janela:
+            return True
+    return False
+
     #=====Main======#
 def janelasSap():
     abrir_sap()

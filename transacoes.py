@@ -23,7 +23,7 @@ def puxar_variante(transacao):
     time.sleep(0.5)
 
 
-def rodar_transacoes_sap():
+def rodar_transacoes_sap(usuario):
     
     time.sleep(2)
     transacoes = ["z22m051", "z22k032", "me3m"]
@@ -116,11 +116,11 @@ def rodar_transacoes_sap():
         win32gui.SetForegroundWindow(hwnd)
         time.sleep(0.5)
         leitorDeTela.esperar_tela(palavras_chave)
-        exportar.exportar_plainha(transacao)
+        exportar.exportar_plainha(transacao, usuario)
 
 
 
-def exportar_051():
+def exportar_051(usuario):
     hwnd = win32gui.FindWindow(None, "PS0(3)/011 Lista Programação de Compras e Recebimentos Efetuados")
     print("hwnd 3: ", hwnd)
     palavras_chave = ["NBM"]
@@ -130,5 +130,7 @@ def exportar_051():
     win32gui.SetForegroundWindow(hwnd)
     time.sleep(0.5)
     leitorDeTela.esperar_tela(palavras_chave)
-    exportar.exportar_plainha("z22m051")
+    exportar.exportar_plainha("z22m051", usuario)
+
+
 

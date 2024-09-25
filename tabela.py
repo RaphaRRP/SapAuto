@@ -5,17 +5,17 @@ from datetime import datetime
 import pyperclip
 import pandas as pd
 import estilo
+import re
 
 
-# Gera a data de hoje no formato dia-mês
 data_hoje = datetime.now().strftime("%d-%m")
-arquivo_mb25 = f"C:/Users/prr8ca/Desktop/Projetos/SapAuto/tabelas/mb25/mb25 - {data_hoje}.xlsx"
-arquivo_me3m = f"C:/Users/prr8ca/Desktop/Projetos/SapAuto/tabelas/me3m/me3m - {data_hoje}.xlsx"
-arquivo_z22k032 = f"C:/Users/prr8ca/Desktop/Projetos/SapAuto/tabelas/z22k032/z22k032 - {data_hoje}.xlsx"
-arquivo_z22m051 = f"C:/Users/prr8ca/Desktop/Projetos/SapAuto/tabelas/z22m051/z22m051 - {data_hoje}.xlsx"
-arquivo_blocok_depois = "C:/Users/prr8ca/Desktop/Projetos/SapAuto/tabelas/Bloco K Depois.xlsx"
 
-    
+
+arquivo_mb25 = f"C:/Users/mis7ca/Desktop/Projetos/SapAuto/tabelas/mb25/mb25 - {data_hoje}.xlsx"
+arquivo_me3m = f"C:/Users/mis7ca/Desktop/Projetos/SapAuto/tabelas/me3m/me3m - {data_hoje}.xlsx"
+arquivo_z22k032 = f"C:/Users/mis7ca/Desktop/Projetos/SapAuto/tabelas/z22k032/z22k032 - {data_hoje}.xlsx"
+arquivo_z22m051 = f"C:/Users/mis7ca/Desktop/Projetos/SapAuto/tabelas/z22m051/z22m051 - {data_hoje}.xlsx"
+arquivo_blocok_depois = "C:/Users/mis7ca/Desktop/Projetos/SapAuto/tabelas/Bloco K.xlsx"
 
 
 
@@ -34,6 +34,19 @@ def transformar_coluna_em_texto(tabela, coluna):
         cell = tabela[f'{coluna}{row}']
         cell.number_format = '@'
 
+def transformar_texto_051(tabela, coluna):
+    for row in range(2, tabela.max_row + 1):  
+        cell = tabela[f'{coluna}{row}']
+        cell.value = re.sub(r"7188006", "7188.006.", cell.value)
+        cell.value = re.sub(r"7188007", "7188.007.", cell.value)
+
+
+def transformar_coluna_em_data_abreviada(tabela, coluna):
+    for row in range(2, tabela.max_row + 1):
+        cell = tabela[f'{coluna}{row}']
+        # Altera o formato da célula para data abreviada
+        cell.number_format = 'DD/MM/YY'
+
 
 def alterar_valor(tabela, coluna, valor_antes, valor_depois):
     for row in range(2, tabela.max_row + 1):  
@@ -51,23 +64,18 @@ def copiar_tabela_entre_arquivos(arquivo_origem, nome_planilha_origem, arquivo_d
 
 
 def copiar_lista_material():
-    # Carrega a planilha de origem e a planilha de destino
+
     df_origem = pd.read_excel(arquivo_blocok_depois, sheet_name='MB25')
     df_destino = pd.read_excel(arquivo_blocok_depois, sheet_name='Planilha1')
 
-    # Pega a coluna desejada da planilha de origem (substitua 'NomeColuna' pelo nome da coluna)
     coluna_origem = df_origem[['Material']]
+    df_destino = coluna_origem.drop_duplicates(subset=['Material'])
 
-    # Adiciona a coluna na planilha de destino
-    df_destino = df_destino.set_index('Material').combine_first(coluna_origem.set_index('Material')).reset_index()
-
-    df_destino.drop_duplicates(subset=['Material'], inplace=True)
-
-
-    # Salva as alterações de volta no mesmo arquivo Excel
-    with pd.ExcelWriter(arquivo_blocok_depois, mode='a', if_sheet_exists='replace') as writer:
+    with pd.ExcelWriter(arquivo_blocok_depois, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
         df_origem.to_excel(writer, sheet_name='MB25', index=False)
         df_destino.to_excel(writer, sheet_name='Planilha1', index=False)
+
+
 
 def pegar_partnumbers():
     wb = xl.load_workbook(arquivo_blocok_depois)
@@ -80,13 +88,13 @@ def pegar_partnumbers():
     
     parnumbers_str = "\r\n".join(parnumbers)
     pyperclip.copy(parnumbers_str)
-    
+
     return parnumbers_str
 
 
 #========================= MB25 =======================#
 
-def alterar_tabela_mb25():
+def levar_mb25_para_blocok():
 
     wb_mb25 = xl.load_workbook(arquivo_mb25)
     tabela_mb25 = wb_mb25['Sheet1']
@@ -101,26 +109,44 @@ def alterar_tabela_mb25():
     UM_coluna_mb25 = xl.utils.get_column_letter(UM_coluna_idx_mb25)
     excluir_linhas(tabela_mb25, UM_coluna_mb25, ['KG'])
 
+    wb_mb25.save(arquivo_mb25)
+    
+    copiar_tabela_entre_arquivos(arquivo_mb25, 'Sheet1', arquivo_blocok_depois,  'MB25')
+    copiar_lista_material()
+    pegar_partnumbers()
+    
+
+    
+def alterar_tabelas():
+
+    copiar_tabela_entre_arquivos(arquivo_me3m, 'Sheet1', arquivo_blocok_depois,  'ME3M Programa Remessa')
+    copiar_tabela_entre_arquivos(arquivo_z22k032, 'Sheet1', arquivo_blocok_depois,  'saldo z22k032')
+    copiar_tabela_entre_arquivos(arquivo_z22m051, 'Sheet1', arquivo_blocok_depois,  'Z22M051 Programação')
+
+    estilo.formatar_blocok(arquivo_blocok_depois)
+
+
+    #========================== mb25 ==================================#
+    wb_mb25 = xl.load_workbook(arquivo_blocok_depois)
+    tabela_mb25 = wb_mb25['MB25']
+    header_mb25 = {cell.value: cell.column for cell in tabela_mb25[1]}
+    data_coluna_idx_mb25 = header_mb25['Data da necessidade']
+    data_coluna_mb25 = xl.utils.get_column_letter(data_coluna_idx_mb25)
+    transformar_coluna_em_data_abreviada(tabela_mb25, data_coluna_mb25)
+
     material_coluna_idx_mb25 = header_mb25['Material']
     material_coluna_mb25 = xl.utils.get_column_letter(material_coluna_idx_mb25)
     transformar_coluna_em_texto(tabela_mb25, material_coluna_mb25)
 
-    wb_mb25.save(arquivo_mb25)
+    data_coluna_idx_mb25 = header_mb25['Data da necessidade']
+    data_coluna_mb25 = xl.utils.get_column_letter(data_coluna_idx_mb25)
+    transformar_coluna_em_data_abreviada(tabela_mb25, data_coluna_mb25)
 
-#============================= Bloco K ================================#
-
-    copiar_tabela_entre_arquivos(arquivo_mb25, 'Sheet1', arquivo_blocok_depois,  'MB25')
-    copiar_lista_material()
-    estilo.formatar_blocok(arquivo_blocok_depois)
-    pegar_partnumbers()
-    
-
-
-def alterar_tabelas():
+    wb_mb25.save(arquivo_blocok_depois)
 
     #========================== me3m ==================================#
-    wb_me3m = xl.load_workbook(arquivo_me3m)
-    tabela_me3m = wb_me3m['Sheet1']
+    wb_me3m = xl.load_workbook(arquivo_blocok_depois)
+    tabela_me3m = wb_me3m['ME3M Programa Remessa']
     header_me3m = {cell.value: cell.column for cell in tabela_me3m[1]}
 
     codigo_coluna_idx_me3m = header_me3m['Código de eliminação']
@@ -131,23 +157,27 @@ def alterar_tabelas():
     materiais_coluna_me3m = xl.utils.get_column_letter(materiais_coluna_idx_me3m)
     transformar_coluna_em_texto(tabela_me3m, materiais_coluna_me3m)
 
-    wb_me3m.save(arquivo_me3m)
+    data_coluna_idx_me3m = header_me3m['Data do documento']
+    data_coluna_me3m = xl.utils.get_column_letter(data_coluna_idx_me3m)
+    transformar_coluna_em_data_abreviada(tabela_me3m, data_coluna_me3m)
+
+    wb_me3m.save(arquivo_blocok_depois)
 
 
     #========================== z22k032 ==================================#
-    wb_z22k032 = xl.load_workbook(arquivo_z22k032)
-    tabela_z22k032 = wb_z22k032['Sheet1']
+    wb_z22k032 = xl.load_workbook(arquivo_blocok_depois)
+    tabela_z22k032 = wb_z22k032['saldo z22k032']
     header_z22k032 = {cell.value: cell.column for cell in tabela_z22k032[1]}
 
     materiais_coluna_idx_z22k032 = header_z22k032['Material']
     materiais_coluna_z22k032 = xl.utils.get_column_letter(materiais_coluna_idx_z22k032)
     transformar_coluna_em_texto(tabela_z22k032, materiais_coluna_z22k032)
     
-    wb_z22k032.save(arquivo_z22k032)
+    wb_z22k032.save(arquivo_blocok_depois)
 
     #========================== z22m051 ==================================#
-    wb_z22m051 = xl.load_workbook(arquivo_z22m051)
-    tabela_z22m051 = wb_z22m051['Sheet1']
+    wb_z22m051 = xl.load_workbook(arquivo_blocok_depois)
+    tabela_z22m051 = wb_z22m051['Z22M051 Programação']
     header_z22m051 = {cell.value: cell.column for cell in tabela_z22m051[1]}
 
     UM_coluna_idx_z22m051 = header_z22m051['UM']
@@ -156,6 +186,14 @@ def alterar_tabelas():
 
     materiais_coluna_idx_z22m051 = header_z22m051['Material']
     materiais_coluna_z22m051 = xl.utils.get_column_letter(materiais_coluna_idx_z22m051)
+    transformar_texto_051(tabela_z22m051, materiais_coluna_z22m051)
     transformar_coluna_em_texto(tabela_z22m051, materiais_coluna_z22m051)
 
-    wb_z22m051.save(arquivo_z22m051)
+    data_coluna_idx_z22m051 = header_z22m051['Data Remessa']
+    data_coluna_z22m051 = xl.utils.get_column_letter(data_coluna_idx_z22m051)
+    transformar_coluna_em_data_abreviada(tabela_z22m051, data_coluna_z22m051)
+
+    wb_z22m051.save(arquivo_blocok_depois)
+
+    #========================== Bloco K ==================================#
+

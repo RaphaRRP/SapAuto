@@ -8,8 +8,11 @@ def formatar_blocok(arquivo):
     wb = xl.load_workbook(arquivo)
 
     tabela_mb25 = wb["MB25"]
+    tabela_me3m = wb["ME3M Programa Remessa"]
+    tabela_z22k032 = wb["saldo z22k032"]
+    tabela_z22m051 = wb["Z22M051 Programação"]
     tabela_planilha1 = wb["Planilha1"]
-    tabelas = [tabela_mb25, tabela_planilha1]
+    tabelas = [tabela_mb25, tabela_me3m, tabela_z22k032, tabela_z22m051, tabela_planilha1]
 
     for tabela in tabelas:
 
